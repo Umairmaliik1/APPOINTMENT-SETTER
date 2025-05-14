@@ -18,5 +18,27 @@
             ],
             "timeDescription": "available from 1pm-10pm"
         }
+    },
+    {
+        "name": "Haris",
+        "details": {
+            "email": "haris@gmail.com",
+            "availableDates": [
+                "2025-05-15T19:00:00.000Z",
+                "2025-06-02T19:00:00.000Z"
+            ],
+            "timeDescription": "available from 9am-3pm"
+        }
+    },
+    {
+        "name": "Haris",
+        "details": {
+            "email": "haris@gmail.com",
+            "availableDates": [
+                "2025-05-15T19:00:00.000Z",
+                "2025-06-02T19:00:00.000Z"
+            ],
+            "timeDescription": "available from 9am-3pm"
+        }
     }
 ]
