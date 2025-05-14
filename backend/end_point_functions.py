@@ -1,10 +1,17 @@
 from flask import request, Response, jsonify 
 from elevenlabs.client import ElevenLabs
 import json,os
-from scripts.AiModel import model
+from scripts.AiModel import agent_executor
+from scripts.tool import should_close
+import pyttsx3
+from langchain.agents import AgentExecutor
+# Initialize client here or use a global one if appropriate for Flask context
+client = ElevenLabs(api_key=os.getenv("elevenlabs_Api_key"))
+def get_agent_response(input:str)-> str:
+    return agent_executor.invoke({"input": input})
 
 def chat():
-    global should_close
+    should_close
     user_input = request.json.get("message")
     if not user_input:
         return jsonify({"error": "Missing user message"}), 400
@@ -13,43 +20,18 @@ def chat():
         return jsonify({"response": "Goodbye!", "end": True})
 
     try:
-        response = model.agent_executor.invoke({"input": user_input})
+        response = get_agent_response(user_input)
         return jsonify({"response": response["output"], "end": should_close})
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 def text_to_speech_elevenlabs():
-    text_to_speak = request.json.get("text")
-    if not text_to_speak:
-        return jsonify({"error": "Missing text"}), 400
+    text= request.json.get("text")
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
 
-    try:
-        # Initialize client here or use a global one if appropriate for Flask context
-        client = ElevenLabs(api_key=os.getenv("elevenlabs_Api_key"))
-        
-        audio_stream_generator = client.text_to_speech.convert_as_stream(
-            text=text_to_speak,
-            voice_id="JBFqnCBsd6RMkjVDRZzb", # Your chosen voice_id
-            model_id="eleven_multilingual_v2"
-        )
-        
-        # Collect all audio byte chunks
-        audio_bytes_list = []
-        for chunk in audio_stream_generator:
-            if isinstance(chunk, bytes):
-                audio_bytes_list.append(chunk)
-        
-        full_audio_bytes = b"".join(audio_bytes_list)
-
-        if not full_audio_bytes:
-            return jsonify({"error": "No audio data generated"}), 500
-
-        return Response(full_audio_bytes, mimetype="audio/mpeg")
-
-    except Exception as e:
-        print(f"ElevenLabs TTS Error: {e}") # Log the error on the server
-        return jsonify({"error": "TTS generation failed", "details": str(e)}), 500
 
 
 def save_availability():
