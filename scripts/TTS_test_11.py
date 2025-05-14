@@ -1,10 +1,12 @@
 from elevenlabs.client import ElevenLabs
 from elevenlabs import stream
-
+import os,dotenv
+from dotenv import load_dotenv
+load_dotenv()
 def tts(response:str):
       # Initialize the ElevenLabs client with your API key
       client = ElevenLabs(
-        api_key='sk_9f4f6e511bd80a3447c3efbff73e2b6293099c4695b87cb4',
+        api_key=os.getenv("elevenlabs_Api_key"),
       )
 
       # Get the list of voices

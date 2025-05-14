@@ -9,6 +9,9 @@ from langchain.prompts import SystemMessagePromptTemplate
 from TTS_test_11 import tts
 from STT_test_dg import listen_and_recognize
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 should_close = False
 # Define tools
 @tool
@@ -117,7 +120,7 @@ custom_format + "\n\n" + base_prompt.messages[0].prompt.template
 prompt = base_prompt
 llm = GoogleGenerativeAI(
 model="gemini-2.0-flash",
-api_key="AIzaSyCVqq8C_DvifL7iFy1qAOZ31OyrUVhcPxQ",
+api_key=os.getenv("gen_ai_API_key"),
 temperature=1,
 )
 agent = create_structured_chat_agent(llm, tools, prompt)
