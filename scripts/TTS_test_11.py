@@ -21,3 +21,5 @@ def tts(response:str):
       for chunk in audio_stream:
           if isinstance(chunk, bytes):
               print(chunk)
+
+        
