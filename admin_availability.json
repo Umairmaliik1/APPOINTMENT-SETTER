@@ -1,44 +1,44 @@
 [
     {
         "name": "Dr Awais",
-        "email": "awais123@gmail.com",
-        "availableDates": [
-            "2025-05-14T19:00:00.000Z",
-            "2025-05-30T19:00:00.000Z"
-        ],
-        "timeDescription": "available from 1pm till 7pm"
+        "description": "Dr Awais is a specialist in dermatology.",
+        "details": {
+            "email": "awais123@gmail.com",
+            "availableDates_start": "2025-05-14T19:00:00.000Z",
+            "availableDates_end": "2025-05-30T19:00:00.000Z",
+            "timeDescription": "available from 1pm till 7pm"
+        }
     },
     {
         "name": "Dr Ali",
+        "description": "Dr Ali is a specialist in cardiology.",
         "details": {
             "email": "ali123@gmail.com",
-            "availableDates": [
-                "2025-05-14T19:00:00.000Z",
-                "2025-05-29T19:00:00.000Z"
-            ],
+            "availableDates_start": "2025-05-14T19:00:00.000Z",
+            "availableDates_end": "2025-05-29T19:00:00.000Z",
             "timeDescription": "available from 1pm-10pm"
         }
     },
     {
-        "name": "Haris",
+        "name": "Shakir",
+        "description": "shakir is a neurologist",
         "details": {
             "email": "haris@gmail.com",
-            "availableDates": [
-                "2025-05-15T19:00:00.000Z",
-                "2025-06-02T19:00:00.000Z"
-            ],
-            "timeDescription": "available from 9am-3pm"
+            "availableDates_start": "2025-05-15T19:00:00.000Z",
+            "availableDates_end": "2025-06-02T19:00:00.000Z",
+            "timeDescription": "available from 9am-6pm"
         }
     },
     {
         "name": "Haris",
+        "description": "General Pactioner",
         "details": {
             "email": "haris@gmail.com",
             "availableDates": [
-                "2025-05-15T19:00:00.000Z",
-                "2025-06-02T19:00:00.000Z"
+                "2025-05-14T19:00:00.000Z",
+                "2025-06-26T19:00:00.000Z"
             ],
-            "timeDescription": "available from 9am-3pm"
+            "timeDescription": "Available from 9am-5pm"
         }
     }
 ]

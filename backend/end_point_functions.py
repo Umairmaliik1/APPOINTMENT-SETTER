@@ -34,48 +34,36 @@ def text_to_speech_elevenlabs():
 
 
 
-def save_availability():
-    try:
-        data = request.get_json()
-
-        name = data.get('name')
-        email = data.get('email')
-        available_dates = data.get('availableDates')  # Should be a list
-        time_description = data.get('timeDescription')
-
-        # Validate all fields
-        if not all([name, email, available_dates, time_description]):
-            return jsonify({"error": "Missing required fields."}), 400
-
-        # Prepare data to be saved
-        availability_entry = {
-            "name": name,
-            "details" :{
-            "email": email,
-            "availableDates": available_dates,
-            "timeDescription": time_description
-            }
+def save_availability(name,desc, email, available_dates, time_description):
+    # Prepare data to be saved
+    availability_entry = {
+        "name": name,
+        "description": desc,
+        "details" :{
+        "email": email,
+        "availableDates": available_dates,
+        "timeDescription": time_description
         }
+    }
 
-        # Read existing data
-        file_path = 'admin_availability.json'
-        if os.path.exists(file_path):
-            with open(file_path, 'r') as f:
-                try:
-                    existing_data = json.load(f)
-                    if not isinstance(existing_data, list):
-                        existing_data = []
-                except json.JSONDecodeError:
+    # Read existing data
+    file_path = 'admin_availability.json'
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            try:
+                existing_data = json.load(f)
+                if not isinstance(existing_data, list):
                     existing_data = []
-        else:
-            existing_data = []
+            except json.JSONDecodeError:
+                existing_data = []
+    else:
+        existing_data = []
 
-        # Append and save
-        existing_data.append(availability_entry)
-        with open(file_path, 'w') as f:
-            json.dump(existing_data, f, indent=4)
+    # Append and save
+    existing_data.append(availability_entry)
+    with open(file_path, 'w') as f:
+        json.dump(existing_data, f, indent=4)
 
-        return jsonify({"message": "Admin availability saved successfully."}), 200
+    return True
 
-    except Exception as e:
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    

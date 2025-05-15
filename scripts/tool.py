@@ -1,7 +1,11 @@
 from langchain.tools import tool
+from datetime import datetime
 import json,os
+
+
 global should_close
 should_close = False
+
 # Define tools
 availability_file_path= "admin_availability.json"
 @tool
@@ -14,7 +18,7 @@ def fetch_doc_details(doctor_name: str) -> str:
             doctors = json.load(f)
 
         for doc in doctors:
-            if doc.get("name", "").lower() == doctor_name.lower():
+            if doctor_name.lower() in doc.get("name", "").lower():
                 return json.dumps(doc.get("details", {}), indent=4)
 
         return f"No details found for doctor: {doctor_name}"
@@ -43,14 +47,16 @@ def extract_unique_doctor_names()->list:
         if not isinstance(data, list):
             data = [data]
 
-        doctor_names = set()
+        doctors = set()
         for entry in data:
             # Adjust the key depending on your JSON structure
-            doctor_name = entry.get('doctor_name') or entry.get('doctor') or entry.get('name')
+            doctor_name =  entry.get('name')
+            doctor_desc = entry.get('description')
             if doctor_name:
-                doctor_names.add(doctor_name)
+                doctors.add((doctor_name, doctor_desc))
 
-        return list(doctor_names)
+
+        return list(doctors)
 
     except json.JSONDecodeError:
         return "Error: Failed to decode JSON file."
@@ -71,11 +77,11 @@ def collect_user_info(input: str) -> str:
 @tool
 def save_info(info: str) -> str:
     """
-    Save collected user info to a JSON file. Info must contain 'name', 'date_time_appointment', and 'email'.
+    Save collected user info to a JSON file. Info must contain 'name','doctor_name' 'date_time_appointment', and 'email'.
     """
     try:
         user_data = json.loads(info)
-        required_fields = ['name', 'date_time_appointment', 'email']
+        required_fields = ['name','doctor_name','date_time_appointment', 'email']
         
         if not all(field in user_data for field in required_fields):
             return "Error: Missing required fields. Need name, date and time for appointment, and email."
@@ -115,3 +121,10 @@ def close_chat() -> str:
     global should_close
     should_close = True
     return "Endin the call."
+
+@tool
+def current_date_time() -> str:
+    """
+    Returns the current date and time.
+    """
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
