@@ -1,12 +1,45 @@
-from flask import request, Response, jsonify 
+from flask import request,jsonify 
 from elevenlabs.client import ElevenLabs
 import json,os
 from scripts.AiModel import agent_executor
 from scripts.tool import should_close
 import pyttsx3
-from langchain.agents import AgentExecutor
+import os,json
+import pandas as pd
 # Initialize client here or use a global one if appropriate for Flask context
 client = ElevenLabs(api_key=os.getenv("elevenlabs_Api_key"))
+def save_through_file(file):
+    # Save the uploaded Excel file temporarily
+            os.makedirs("temp", exist_ok=True)
+            temp_excel_path = os.path.join("temp", file.filename)
+            file.save(temp_excel_path)
+
+            # Read Excel data
+            df = pd.read_excel(temp_excel_path, engine='openpyxl')
+
+            # Convert and reshape each record
+            reshaped_data = []
+            for _, row in df.iterrows():
+                doctor = {
+                    "name": row["name"],
+                    "description": row["description"],
+                    "details": {
+                        "email": row["email"],
+                        "availableDates_start": row["availableDates_start"],
+                        "availableDates_end": row["availableDates_end"],
+                        "timeDescription": row["timeDescription"]
+                    }
+                }
+                reshaped_data.append(doctor)
+
+            # Save reshaped data to admin_availability.json
+            output_json_path = "admin_availability.json"
+            with open(output_json_path, 'w', encoding='utf-8') as json_file:
+                json.dump(reshaped_data, json_file, indent=4, ensure_ascii=False)
+
+            # Clean up temp file
+            os.remove(temp_excel_path)
+            return True
 def get_agent_response(input:str)-> str:
     return agent_executor.invoke({"input": input})
 

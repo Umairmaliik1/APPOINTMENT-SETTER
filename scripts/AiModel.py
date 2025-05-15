@@ -1,16 +1,12 @@
 #Perfectly functioning AI model for collecting user information.
-import json
 from langchain_google_genai.llms import GoogleGenerativeAI
 from langchain.agents import create_structured_chat_agent, AgentExecutor
 from langchain.memory import ConversationBufferMemory
 from langchain import hub
 from langchain.prompts import SystemMessagePromptTemplate
-from scripts.TTS_test_11 import tts
-from scripts.STT_test_dg import listen_and_recognize
 import os
 from dotenv import load_dotenv
 import scripts.tool as t
-import scripts.custom_prompt as cp
 
 load_dotenv()
 tools = [t.current_date_time,t.fetch_doc_details,t.extract_unique_doctor_names,t.collect_user_info, t.save_info,t.close_chat]

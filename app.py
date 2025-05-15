@@ -1,10 +1,9 @@
 from flask import Flask
 from dotenv import load_dotenv
 from flask_cors import CORS
-from backend.end_point_functions import chat, text_to_speech_elevenlabs, save_availability
+from backend.end_point_functions import chat, text_to_speech_elevenlabs, save_availability,save_through_file
 from flask import request, jsonify
-import os,json
-import pandas as pd
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -49,40 +48,9 @@ def save_throught_file_route():
 
     if file and file.filename.endswith('.xlsx'):
         try:
-            # Save the uploaded Excel file temporarily
-            os.makedirs("temp", exist_ok=True)
-            temp_excel_path = os.path.join("temp", file.filename)
-            file.save(temp_excel_path)
-
-            # Read Excel data
-            df = pd.read_excel(temp_excel_path, engine='openpyxl')
-
-            # Convert and reshape each record
-            reshaped_data = []
-            for _, row in df.iterrows():
-                doctor = {
-                    "name": row["name"],
-                    "description": row["description"],
-                    "details": {
-                        "email": row["email"],
-                        "availableDates_start": row["availableDates_start"],
-                        "availableDates_end": row["availableDates_end"],
-                        "timeDescription": row["timeDescription"]
-                    }
-                }
-                reshaped_data.append(doctor)
-
-            # Save reshaped data to admin_availability.json
-            output_json_path = "admin_availability.json"
-            with open(output_json_path, 'w', encoding='utf-8') as json_file:
-                json.dump(reshaped_data, json_file, indent=4, ensure_ascii=False)
-
-            # Clean up temp file
-            os.remove(temp_excel_path)
-
+            save_through_file(file)
             return jsonify({
                 "message": "Excel converted and saved to admin_availability.json with nested details",
-                "data": reshaped_data
             })
 
         except Exception as e:
