@@ -1,0 +1,9 @@
+langchain
+flask
+flask-cors
+elevenlabs
+langchain_google
+pyttsx3
+langchain_google_genai
+SpeechRecognition
+python-dotenv
