@@ -1,8 +1,17 @@
-from flask import Flask
+from flask import Flask,Response
 from dotenv import load_dotenv
 from flask_cors import CORS
-from backend.end_point_functions import chat, text_to_speech_elevenlabs, save_availability,save_through_file
+from backend.end_point_functions import chat, text_to_speech_elevenlabs, save_availability,save_through_file,generate_room_name,get_rooms
 from flask import request, jsonify
+import os
+from flask import Flask,request
+from livekit import api
+from dotenv import load_dotenv
+from flask_cors import CORS
+import threading
+import asyncio
+from backend.ai_bot import run_ai_bot
+
 
 load_dotenv()
 
@@ -36,7 +45,7 @@ def save_availability_route():
         return jsonify({"error": str(e)}), 500
     
 
-@app.route('/api/savethroughFile', methods=['POST'])
+@app.route('/api/savethroughFile')
 def save_throught_file_route():
     if 'file' not in request.files:
         return jsonify({"error": "No file part in the request"}), 400
@@ -57,6 +66,52 @@ def save_throught_file_route():
             return jsonify({"error": str(e)}), 500
     else:
         return jsonify({"error": "Only .xlsx files are supported"}), 400
+
+
+@app.route("/getToken",methods=['GET'])
+async def get_token():
+    try:
+        name=request.args.get("name","my name")
+        room=request.args.get("room",None)
+        print(name)
+
+        if not room:
+            room= await generate_room_name()
+
+        token = api.AccessToken(
+            os.getenv("LiveKit_APIKey"),
+            os.getenv("LiveKit_Secret")
+        ).with_identity(name)\
+            .with_name(name)\
+            .with_grants(
+            api.VideoGrants(
+                room_join=True,
+                room=room
+            )
+        ).to_jwt()
+        print(room)
+        return token
+
+    except Exception as e:
+        print("get_token error:", str(e))  # Log in backend
+        return jsonify({"error": "Server error", "details": str(e)}), 500
+
+
+
+def start_bot(room_name):
+    asyncio.run(run_ai_bot(room_name))
+
+@app.route('/videoCall', methods=['POST'])
+def video_call():
+    data = request.json
+    room_name = data.get('room_name')
+    if not room_name:
+        return jsonify({"error": "Missing room_name"}), 400
+
+    # Run bot in a separate thread to avoid blocking
+    threading.Thread(target=start_bot, args=(room_name,), daemon=True).start()
+
+    return jsonify({"status": f"AI bot started for room {room_name}"}), 200
 
 
 if __name__ == "__main__":

@@ -6,8 +6,23 @@ from scripts.tool import should_close
 import pyttsx3
 import os,json
 import pandas as pd
+import uuid
+from livekit.api import LiveKitAPI,ListRoomsRequest
+from livekit import api
 # Initialize client here or use a global one if appropriate for Flask context
 client = ElevenLabs(api_key=os.getenv("elevenlabs_Api_key"))
+async def generate_room_name():
+    name="room-"+str(uuid.uuid4())[:8]
+    rooms=await get_rooms()
+    while name in rooms:
+        name="room-"+str(uuid.uuid4())[:8]
+
+    return name 
+async def get_rooms():
+    api=LiveKitAPI()
+    rooms=await api.room.list_rooms(ListRoomsRequest())
+    await api.aclose()
+    return [room.name for room in rooms.rooms]
 def save_through_file(file):
     # Save the uploaded Excel file temporarily
             os.makedirs("temp", exist_ok=True)
@@ -42,7 +57,6 @@ def save_through_file(file):
             return True
 def get_agent_response(input:str)-> str:
     return agent_executor.invoke({"input": input})
-
 def chat():
     should_close
     user_input = request.json.get("message")
@@ -58,15 +72,11 @@ def chat():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 def text_to_speech_elevenlabs():
     text= request.json.get("text")
     engine = pyttsx3.init()
     engine.say(text)
     engine.runAndWait()
-
-
-
 def save_availability(name,desc, email, available_dates, time_description):
     # Prepare data to be saved
     availability_entry = {
