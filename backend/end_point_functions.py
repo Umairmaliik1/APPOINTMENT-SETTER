@@ -19,7 +19,10 @@ async def generate_room_name():
 
     return name 
 async def get_rooms():
-    api=LiveKitAPI()
+    api=LiveKitAPI(
+    url=os.getenv("NEXT_PUBLIC_LIVEKIT_URL"),  
+    api_key=os.getenv("LiveKit_APIKey"),
+    api_secret=os.getenv("LiveKit_Secret"))
     rooms=await api.room.list_rooms(ListRoomsRequest())
     await api.aclose()
     return [room.name for room in rooms.rooms]

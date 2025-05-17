@@ -40,32 +40,30 @@
 #     return mp3_bytes
 
 # stream(elevenlabs_tts("Hello testing!"))
+from pydub import AudioSegment
 import pyttsx3
-import wave
 import os
 import time
+import io
 
 def tts(text):
     engine = pyttsx3.init()
     wav_path = "tts_output.wav"
     
-    # Save to file
     engine.save_to_file(text, wav_path)
-    engine.runAndWait()  # This waits until file is written
+    engine.runAndWait()
+    time.sleep(0.5)  # Ensure file is written
 
-    # Wait to ensure file is closed and flushed
-    time.sleep(0.5)
-
-    # Validate file exists
     if not os.path.exists(wav_path):
         raise Exception("TTS output file not found!")
 
-    # Read WAV and convert to PCM bytes
-    with wave.open(wav_path, "rb") as wf:
-        frames = wf.readframes(wf.getnframes())
-        sample_rate = wf.getframerate()
-        channels = wf.getnchannels()
+    # Load with pydub, convert to 48kHz stereo PCM16
+    audio = AudioSegment.from_wav(wav_path)
+    audio = audio.set_frame_rate(48000).set_channels(2).set_sample_width(2)  # 16-bit
 
-    return frames  # PCM bytes
+    # Export raw PCM bytes to memory
+    pcm_io = io.BytesIO()
+    audio.export(pcm_io, format="raw")
+    pcm_bytes = pcm_io.getvalue()
 
-
+    return pcm_bytes

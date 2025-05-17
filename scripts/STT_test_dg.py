@@ -74,22 +74,47 @@
 #     asyncio.run(main())
 
 
-import tempfile
 import numpy as np
-import wave
+from scipy.signal import resample_poly
 import whisper
+import tempfile
 
-model = whisper.load_model("base")  # or "tiny" for faster inference
 
-def process_audio_pcm_to_text(pcm_data: bytes, sample_rate: int = 48000, channels: int = 2) -> str:
-    # Save raw PCM to temp WAV file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
-        with wave.open(f.name, "wb") as wf:
-            wf.setnchannels(channels)
-            wf.setsampwidth(2)  # 16-bit audio
-            wf.setframerate(sample_rate)
-            wf.writeframes(pcm_data)
+# Load model once globally
+model0 = whisper.load_model("small")
 
-        # Run Whisper STT
-        result = model.transcribe(f.name)
+def convert_to_mono_16k(pcm_data: bytes, sample_rate=48000, channels=2) -> bytes:
+    audio_np = np.frombuffer(pcm_data, dtype=np.int16)
+    if channels == 2:
+        audio_np = audio_np.reshape((-1, 2))
+        audio_mono = audio_np.mean(axis=1).astype(np.int16)
+    else:
+        audio_mono = audio_np
+
+    # Resample 48kHz -> 16kHz
+    resampled = resample_poly(audio_mono, 1, 3).astype(np.int16)
+    return resampled.tobytes()
+
+def process_audio_pcm_to_text(pcm_data: bytes, sample_rate=48000, channels=2) -> str:
+    import os
+    import wave
+
+    pcm_16k = convert_to_mono_16k(pcm_data, sample_rate, channels)
+    clean_pcm = pcm_16k
+
+    # Write to a temporary WAV file and close it before passing to whisper
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        tmp_filename = tmp.name
+
+    try:
+        with wave.open(tmp_filename, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(16000)
+            wf.writeframes(clean_pcm)
+
+        result = model0.transcribe(tmp_filename)
         return result["text"]
+
+    finally:
+        os.remove(tmp_filename)  # Clean up the temporary file

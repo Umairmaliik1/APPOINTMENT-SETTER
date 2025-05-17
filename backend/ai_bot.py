@@ -43,27 +43,36 @@ async def run_ai_bot(room_name: str):
             print(f"Subscribed to audio track from {participant.identity}")
             asyncio.create_task(handle_audio_track(track))
 
+
     async def handle_audio_track(track: rtc.Track):
         audio_stream = rtc.AudioStream(track)
+        buffer = bytearray()
+        min_duration_bytes = 48000 * 2 * 2 * 5  # 5 seconds of audio
 
         async for audio_frame_event in audio_stream:
             pcm_data = audio_frame_event.frame.data
-            transcribed_text =  process_audio_pcm_to_text(pcm_data)
-            print("User said:", transcribed_text)
+            buffer.extend(pcm_data)
 
-            ai_response = get_agent_response(transcribed_text)
-            print("AI Responds:", ai_response["output"])
+            if len(buffer) >= min_duration_bytes:
+                print(f"Received 5 seconds of audio. Bytes: {len(buffer)}")
+                
+                transcribed_text = process_audio_pcm_to_text(bytes(buffer))
+                print("User said:", transcribed_text)
 
-            pcm_bytes = tts(ai_response["output"])
+                ai_response = get_agent_response(transcribed_text)
+                print("AI Responds:", ai_response["output"])
 
-            if pcm_bytes:
-                frame = rtc.AudioFrame(
-                    data=pcm_bytes,
-                    sample_rate=48000,
-                    num_channels=2,
-                    samples_per_channel=len(pcm_bytes) // 4
-                )
-                await source.capture_frame(frame)
+                pcm_bytes = tts(ai_response["output"])
+                if pcm_bytes:
+                    frame = rtc.AudioFrame(
+                        data=pcm_bytes,
+                        sample_rate=48000,
+                        num_channels=2,
+                        samples_per_channel=len(pcm_bytes) // 4
+                    )
+                    await source.capture_frame(frame)
+
+                buffer.clear()
 
 
     try:

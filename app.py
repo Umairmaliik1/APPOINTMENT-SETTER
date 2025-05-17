@@ -68,7 +68,7 @@ def save_throught_file_route():
         return jsonify({"error": "Only .xlsx files are supported"}), 400
 
 
-@app.route("/getToken",methods=['GET'])
+@app.route("/getToken",methods=['POST'])
 async def get_token():
     try:
         name=request.args.get("name","my name")
@@ -89,8 +89,10 @@ async def get_token():
                 room=room
             )
         ).to_jwt()
-        print(room)
-        return token
+        return jsonify({
+            "token": token,
+            "room_name":room
+        }), 200
 
     except Exception as e:
         print("get_token error:", str(e))  # Log in backend
@@ -105,13 +107,22 @@ def start_bot(room_name):
 def video_call():
     data = request.json
     room_name = data.get('room_name')
-    if not room_name:
-        return jsonify({"error": "Missing room_name"}), 400
+
+    print(f"Starting AI bot for room: {room_name}")
 
     # Run bot in a separate thread to avoid blocking
     threading.Thread(target=start_bot, args=(room_name,), daemon=True).start()
 
-    return jsonify({"status": f"AI bot started for room {room_name}"}), 200
+    return jsonify({
+        "status": f"AI bot started for room {room_name}"
+    }), 200
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    return response
 
 
 if __name__ == "__main__":
