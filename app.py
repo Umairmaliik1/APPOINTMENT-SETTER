@@ -8,9 +8,6 @@ from flask import Flask,request
 from livekit import api
 from dotenv import load_dotenv
 from flask_cors import CORS
-import threading
-import asyncio
-from backend.ai_bot import run_ai_bot
 
 
 load_dotenv()
@@ -97,32 +94,6 @@ async def get_token():
     except Exception as e:
         print("get_token error:", str(e))  # Log in backend
         return jsonify({"error": "Server error", "details": str(e)}), 500
-
-
-
-def start_bot(room_name):
-    asyncio.run(run_ai_bot(room_name))
-
-@app.route('/videoCall', methods=['POST'])
-def video_call():
-    data = request.json
-    room_name = data.get('room_name')
-
-    print(f"Starting AI bot for room: {room_name}")
-
-    # Run bot in a separate thread to avoid blocking
-    threading.Thread(target=start_bot, args=(room_name,), daemon=True).start()
-
-    return jsonify({
-        "status": f"AI bot started for room {room_name}"
-    }), 200
-
-@app.after_request
-def add_cors_headers(response):
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
-    response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-    return response
 
 
 if __name__ == "__main__":
