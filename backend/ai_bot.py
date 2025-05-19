@@ -1,7 +1,5 @@
 from dotenv import load_dotenv
-
 from livekit import agents
-from scripts.AiModel import agent_executor
 from livekit.agents import AgentSession, Agent, RoomInputOptions
 from livekit.plugins import (
     openai,
@@ -12,12 +10,14 @@ from livekit.plugins import (
     google
 )
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+from prompt import global_prompt,temporary_overide
+
 load_dotenv()
 
 
 class Assistant(Agent):
     def __init__(self) -> None:
-        super().__init__(instructions="You are a helpful voice AI assistant.")
+        super().__init__(instructions=global_prompt())
 
 
 async def entrypoint(ctx: agents.JobContext):
@@ -43,7 +43,7 @@ async def entrypoint(ctx: agents.JobContext):
     await ctx.connect()
 
     await session.generate_reply(
-        instructions="Greet the user and offer your assistance."
+        instructions=temporary_overide()
     )
 
 
