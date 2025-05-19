@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions
 from livekit.plugins import (
-    openai,
     cartesia,
     deepgram,
     noise_cancellation,
@@ -17,7 +16,7 @@ load_dotenv()
 
 class Assistant(Agent):
     def __init__(self) -> None:
-        super().__init__(instructions=global_prompt())
+        super().__init__(instructions=global_prompt)
 
 
 async def entrypoint(ctx: agents.JobContext):
@@ -43,7 +42,7 @@ async def entrypoint(ctx: agents.JobContext):
     await ctx.connect()
 
     await session.generate_reply(
-        instructions=temporary_overide()
+        instructions=temporary_overide
     )
 
 
