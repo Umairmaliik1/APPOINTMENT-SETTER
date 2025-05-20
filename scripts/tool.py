@@ -1,12 +1,39 @@
 from langchain.tools import tool
 from datetime import datetime
 import json,os
-
+import os
+credentials_path = "C:/Users/HP/Desktop/APPOINTMENT-SETTER/pub_sub/cred.json"
+print(credentials_path)
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
+from google.cloud import pubsub_v1
+from google.cloud import pubsub_v1
 
 global should_close
 should_close = False
 
 # Define tools
+@tool
+def publish_data(name: str, email: str, doc_category: str, datetime: str) -> str:
+    """This tool is used to publish data to a Google Pub/Sub topic."""
+    project_id = "gen-lang-client-0194953633"
+    topic_id = "appointment-setter"
+    publisher = pubsub_v1.PublisherClient()
+    topic_path = publisher.topic_path(project_id, topic_id)
+
+    # Message payload (can be just a summary or ID)
+    data_str = f"{name} is booking an appointment for {doc_category} on {datetime}"
+    data = data_str.encode("utf-8")
+
+    # Message attributes
+    attributes = {
+        "name": name,
+        "email": email,
+        "doc_category": doc_category,
+        "datetime": datetime,
+    }
+
+    future = publisher.publish(topic_path, data, **attributes)
+    return f"Data Published. Message ID: {future.result(timeout=10)}"
 availability_file_path= "admin_availability.json"
 @tool
 def fetch_doc_details(doctor_name: str) -> str:

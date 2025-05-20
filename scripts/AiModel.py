@@ -6,10 +6,10 @@ from langchain import hub
 from langchain.prompts import SystemMessagePromptTemplate
 import os
 from dotenv import load_dotenv
-import scripts.tool as t
+import tool as t
 
 load_dotenv()
-tools = [t.current_date_time,t.fetch_doc_details,t.extract_unique_doctor_names,t.collect_user_info, t.save_info,t.close_chat]
+tools = [t.current_date_time,t.fetch_doc_details,t.extract_unique_doctor_names,t.collect_user_info, t.save_info,t.close_chat,t.publish_data]
 
     # Load base prompt
 base_prompt = hub.pull("hwchase17/structured-chat-agent")
@@ -42,6 +42,15 @@ Ensure the selected time falls within the doctor's availability window before co
 
 After getting the date and time, ask for the user's email address and validate if the email is in correct format.
 
+After that call publish_data tool to publish the data, for publish data you must give input like the following structure it is 
+mandatory:
+{{
+  "name": " ",
+  "email": " ",
+  "doc_category": " ",
+  "datetime": " "
+}}
+
 Save the appointment details using the save_info tool.
 
 --If the user instead describes a disease or medical issue without asking to book:
@@ -68,11 +77,20 @@ Ensure the selected time falls within the doctor's availability window before co
 After getting the date and time, ask for user's name and after getting the name ask for the user's email address and validate if the 
 email format is correct.
 
+After that call publish_data tool to publish the data, for publish data you must give input like the following structure it is 
+mandatory:
+{{
+  "name": " ",
+  "email": " ",
+  "doc_category": " ",
+  "datetime": " "
+}}
+
 Save the appointment details using the save_info tool.
 
 --Important Rules:
 MOST IMPORTANTLY, If user enters preffered date and time like next friday in evening then you have to convert it into correct date 
-and time format 
+and time format which is ISO format(yyyy-MM-dd'T'HH:mm:ss)
 by calling current_date_time tool, it will return you the current date and time from that you have to calculate,
 for example if user says next friday in evening and today is 15th may and next friday is 19th may then you have to consider 19th may as
 preffered date and for time ask user to choose between the time of doctor's availability.
@@ -132,3 +150,7 @@ memory=memory,
 verbose=True,
 handle_parsing_errors=True,
 )
+while True:
+    user_input = input("You: ")
+    result = agent_executor.invoke({"input": user_input})
+    print("AI:", result["output"])
