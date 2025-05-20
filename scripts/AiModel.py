@@ -6,10 +6,10 @@ from langchain import hub
 from langchain.prompts import SystemMessagePromptTemplate
 import os
 from dotenv import load_dotenv
-import tool as t
+from tool import *
 
 load_dotenv()
-tools = [t.current_date_time,t.fetch_doc_details,t.extract_unique_doctor_names,t.collect_user_info, t.save_info,t.close_chat,t.publish_data]
+tools = [current_date_time,fetch_doc_details,extract_unique_doctor_names,collect_user_info, save_info,close_chat,publish_data]
 
     # Load base prompt
 base_prompt = hub.pull("hwchase17/structured-chat-agent")
