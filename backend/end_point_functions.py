@@ -1,5 +1,4 @@
 from flask import request,jsonify 
-from elevenlabs.client import ElevenLabs
 import json,os
 from scripts.AiModel import agent_executor
 from scripts.tool import should_close
@@ -9,8 +8,8 @@ import pandas as pd
 import uuid
 from livekit.api import LiveKitAPI,ListRoomsRequest
 from livekit import api
-# Initialize client here or use a global one if appropriate for Flask context
-client = ElevenLabs(api_key=os.getenv("elevenlabs_Api_key"))
+
+# Generates a unique room name that does not conflict with existing room names
 async def generate_room_name():
     name="room-"+str(uuid.uuid4())[:8]
     rooms=await get_rooms()
@@ -18,6 +17,8 @@ async def generate_room_name():
         name="room-"+str(uuid.uuid4())[:8]
 
     return name 
+
+# Retrieves a list of all existing room names from the LiveKit API
 async def get_rooms():
     api=LiveKitAPI(
     url=os.getenv("NEXT_PUBLIC_LIVEKIT_URL"),  
@@ -26,6 +27,8 @@ async def get_rooms():
     rooms=await api.room.list_rooms(ListRoomsRequest())
     await api.aclose()
     return [room.name for room in rooms.rooms]
+
+# Saves an uploaded Excel file, processes its data, and stores it in a JSON file
 def save_through_file(file):
     # Save the uploaded Excel file temporarily
             os.makedirs("temp", exist_ok=True)
@@ -58,8 +61,11 @@ def save_through_file(file):
             # Clean up temp file
             os.remove(temp_excel_path)
             return True
+
+# Invokes the AI agent to get a response based on the provided input
 def get_agent_response(input:str)-> str:
     return agent_executor.invoke({"input": input})
+
 def chat():
     should_close
     user_input = request.json.get("message")
@@ -75,11 +81,13 @@ def chat():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
 def text_to_speech_elevenlabs():
     text= request.json.get("text")
     engine = pyttsx3.init()
     engine.say(text)
     engine.runAndWait()
+    
 def save_availability(name,desc, email, available_dates, time_description):
     # Prepare data to be saved
     availability_entry = {

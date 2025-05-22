@@ -33,3 +33,5 @@ livekit-protocol==1.0.3
 llvmlite==0.44.0
 numpy==2.2.5
 uvicorn==0.34.2
+pandas
+pyttsx3
