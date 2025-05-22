@@ -28,29 +28,5 @@
             "availableDates_end": "2025-06-02T19:00:00.000Z",
             "timeDescription": "available from 9am-6pm"
         }
-    },
-    {
-        "name": "Haris",
-        "description": "General Pactioner",
-        "details": {
-            "email": "haris@gmail.com",
-            "availableDates": [
-                "2025-05-14T19:00:00.000Z",
-                "2025-06-26T19:00:00.000Z"
-            ],
-            "timeDescription": "Available from 9am-5pm"
-        }
-    },
-    {
-        "name": "Peter",
-        "description": "Peter is child specialist",
-        "details": {
-            "email": "peter123@gmail.com",
-            "availableDates": [
-                "2025-05-27T19:00:00.000Z",
-                "2025-05-18T19:00:00.000Z"
-            ],
-            "timeDescription": "available at 7pm till 10pm"
-        }
     }
 ]

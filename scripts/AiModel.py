@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from tool import *
 
 load_dotenv()
-tools = [current_date_time,fetch_doc_details,extract_unique_doctor_names,collect_user_info, save_info,close_chat,publish_data,reschedule_appointment]
+tools = [current_date_time,fetch_doc_details,extract_unique_doctor_names,collect_user_info, save_info,close_chat,publish_data,check_appointment,update_time]
 
     # Load base prompt
 base_prompt = hub.pull("hwchase17/structured-chat-agent")
@@ -86,23 +86,24 @@ mandatory:
   "datetime": " "
 }}
 
-Save the appointment details using the save_info tool.
+--if user want to check the appointment is booked or not:
 
---if the user insted wants to reschedule the appontment already booked:
-call reschedule_appointment tool to reschedule the appointment, for this you have to pass the email and datetime in correct formate to check formate call call current_date_time toll.
-if user provides the email or time then ask for the missing information.
+Ask the user for email address and validate if the email format is correct.
 
-Ensure the selected time falls within the doctor's availability window before rescheduling the appointment.
-After that call publish_data tool to publish the data, for publish data you must give input like the following structure it is 
-mandatory:
-{{
-  "name": " ",
-  "email": " ",
-  "doc_category": " ",
-  "datetime": " "
-}}
+Then call the check_appointment tool to check if the appointment exists or not.
 
-Save the updated appointment by calling the reschedule_appointment tool. No need to call save_info again.
+if appointment exists then show the details of appointment.
+
+if appointment does not exist then show the message that no appointment exists with this email.
+
+Ask the user if they want to book an appointment.
+
+If appointment exists then ask the user if they want to reschedule the appointment. 
+
+If user says yes then call update_time tool ask for the preferred date and time.
+
+Check if the selected time falls within the doctor's availability window before confirming the appointment.
+
 
 
 --Important Rules:

@@ -160,17 +160,13 @@ def current_date_time() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 @tool
-def reschedule_appointment(info: str) -> str:
+def check_appointment(info: str) -> str:
     """
-    Reschedule existing appointments. Input must be a JSON string with 'email' and 'new_datetime'.
+    Check If the Appointment booked or not. Ensure the input is a valid JSON string with an 'email' field.
     """
     try:
         payload = json.loads(info)
         email = payload.get("email")
-        new_datetime = payload.get("new_datetime")
-
-        if not email or not new_datetime:
-            return "Error: Missing 'email' or 'new_datetime' in input."
 
         if not os.path.exists('user_info.json'):
             return "No appointment records found."
@@ -178,23 +174,56 @@ def reschedule_appointment(info: str) -> str:
         with open('user_info.json', 'r') as f:
             data = json.load(f)
 
-        updated = False
         for entry in data:
             if entry.get('email') == email:
-                entry['date_time_appointment'] = new_datetime
-                updated = True
-                break
+                return f"Appointment found for email: {email}. Details: {json.dumps(entry, indent=4)}"   
 
-        if not updated:
-            return f"No appointment found for email: {email}"
-
-        with open('user_info.json', 'w') as f:
-            json.dump(data, f, indent=4)
-
-        return f"Appointment rescheduled successfully to {new_datetime} for {email}"
+        return f"No appointment found for email: {email}"
 
     except json.JSONDecodeError:
         return "Error: Invalid JSON format"
     except Exception as e:
         return f"Error updating information: {str(e)}"
+    
+@tool
+def update_time(info: str) -> str:
+    """
+    Update the time of the appointment. Ensure the input is a valid JSON string with 'email' and 'new_time' fields.
+    """
+    try:
+        payload = json.loads(info)
+        email = payload.get("email")
+        new_time = payload.get("new_time")
 
+        if not os.path.exists('user_info.json'):
+            return "No appointment records found."
+
+        with open('user_info.json', 'r') as f:
+            data = json.load(f)
+
+        for entry in data:
+            if entry.get('email') == email:
+                doctor_name = entry.get('doctor_name')
+                with open(availability_file_path, "r") as f:
+                    doctors = json.load(f)
+                for doc in doctors:
+                    if doctor_name.lower() in doc.get("name", "").lower():
+                        date1 = doc.get("availableDates_start")
+                        date2 = doc.get("availableDates_end")
+                        if date1 <= new_time <= date2:
+                            entry['date_time_appointment'] = new_time
+                            break
+                        else:
+                            return f"New time {new_time} is not within the doctor's availability window."
+                        
+
+        with open('user_info.json', 'w') as f:
+            json.dump(data, f, indent=4)
+
+        return f"Appointment time updated to {new_time} for email: {email}"
+
+    except json.JSONDecodeError:
+        return "Error: Invalid JSON format"
+    except Exception as e:
+        return f"Error updating information: {str(e)}"
+    
