@@ -1,5 +1,4 @@
 from flask import request,jsonify 
-from elevenlabs.client import ElevenLabs
 import json,os
 from scripts.AiModel import agent_executor
 from scripts.tool import should_close
@@ -8,6 +7,7 @@ import os,json
 import pandas as pd
 import uuid
 from livekit.api import LiveKitAPI,ListRoomsRequest
+
 async def generate_room_name():
     name="room-"+str(uuid.uuid4())[:8]
     rooms=await get_rooms()
@@ -15,6 +15,8 @@ async def generate_room_name():
         name="room-"+str(uuid.uuid4())[:8]
 
     return name 
+
+# Retrieves a list of all existing room names from the LiveKit API
 async def get_rooms():
     api=LiveKitAPI(
     url=os.getenv("NEXT_PUBLIC_LIVEKIT_URL"),  
@@ -23,6 +25,8 @@ async def get_rooms():
     rooms=await api.room.list_rooms(ListRoomsRequest())
     await api.aclose()
     return [room.name for room in rooms.rooms]
+
+# Saves an uploaded Excel file, processes its data, and stores it in a JSON file
 def save_through_file(file):
     # Save the uploaded Excel file temporarily
             os.makedirs("temp", exist_ok=True)
@@ -55,28 +59,8 @@ def save_through_file(file):
             # Clean up temp file
             os.remove(temp_excel_path)
             return True
-def get_agent_response(input:str)-> str:
-    return agent_executor.invoke({"input": input})
-def chat():
-    should_close
-    user_input = request.json.get("message")
-    if not user_input:
-        return jsonify({"error": "Missing user message"}), 400
 
-    if should_close:
-        return jsonify({"response": "Goodbye!", "end": True})
-
-    try:
-        response = get_agent_response(user_input)
-        return jsonify({"response": response["output"], "end": should_close})
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-def text_to_speech_elevenlabs():
-    text= request.json.get("text")
-    engine = pyttsx3.init()
-    engine.say(text)
-    engine.runAndWait()
+#Save the availability of the doctor, through admin panel.
 def save_availability(name,desc, email, available_dates, time_description):
     # Prepare data to be saved
     availability_entry = {
@@ -109,4 +93,33 @@ def save_availability(name,desc, email, available_dates, time_description):
 
     return True
 
+
+# Invokes the AI agent to get a response based on the provided input
+def get_agent_response(input:str)-> str:
+    return agent_executor.invoke({"input": input})
+
+#Starts the chat with the agent.
+def chat():
+    should_close
+    user_input = request.json.get("message")
+    if not user_input:
+        return jsonify({"error": "Missing user message"}), 400
+
+    if should_close:
+        return jsonify({"response": "Goodbye!", "end": True})
+
+    try:
+        response = get_agent_response(user_input)
+        return jsonify({"response": response["output"], "end": should_close})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+#Converts text to speech
+def text_to_speech_elevenlabs():
+    text= request.json.get("text")
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
     

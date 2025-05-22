@@ -1,8 +1,6 @@
 import os
 from dotenv import load_dotenv
 from livekit import agents
-credentials_path = "C:/Users/HP/Desktop/APPOINTMENT-SETTER/pub_sub/cred.json"
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 from livekit.agents import AgentSession, Agent, RoomInputOptions,function_tool
 from livekit.plugins import (
     cartesia,
@@ -13,8 +11,13 @@ from livekit.plugins import (
 )
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 from prompt import global_prompt,temporary_overide
+relative_path = r"pub_sub\cred.json"
+absolute_path = os.path.abspath(relative_path)
+credentials_path = absolute_path
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 
 load_dotenv()
+
 @function_tool
 async def publish_data(name: str, doc_category: str, datetime: str, email: str) -> str:
     """Publishes data to a Pub/Sub topic."""
@@ -43,12 +46,12 @@ async def publish_data(name: str, doc_category: str, datetime: str, email: str) 
         return f"Failed to publish data: {str(e)}"
 
 
-class Assistant(Agent):
+class Assistant(Agent): #Instance of the agent.
     def __init__(self) -> None:
         super().__init__(tools=[publish_data],instructions=global_prompt)
 
 
-async def entrypoint(ctx: agents.JobContext):
+async def entrypoint(ctx: agents.JobContext): #Enterypoint function for our persistant AI assistant.
     session = AgentSession(
         stt=deepgram.STT(model="nova-3", language="multi"),
         llm=google.LLM(model="gemini-2.0-flash-001"),
@@ -57,6 +60,7 @@ async def entrypoint(ctx: agents.JobContext):
         turn_detection=MultilingualModel(),
     )
 
+#Starting the session.
     await session.start(
         room=ctx.room,
         agent=Assistant(),
