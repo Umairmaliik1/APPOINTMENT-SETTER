@@ -62,32 +62,7 @@ def save_through_file(file):
             os.remove(temp_excel_path)
             return True
 
-# Invokes the AI agent to get a response based on the provided input
-def get_agent_response(input:str)-> str:
-    return agent_executor.invoke({"input": input})
-
-def chat():
-    should_close
-    user_input = request.json.get("message")
-    if not user_input:
-        return jsonify({"error": "Missing user message"}), 400
-
-    if should_close:
-        return jsonify({"response": "Goodbye!", "end": True})
-
-    try:
-        response = get_agent_response(user_input)
-        return jsonify({"response": response["output"], "end": should_close})
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-def text_to_speech_elevenlabs():
-    text= request.json.get("text")
-    engine = pyttsx3.init()
-    engine.say(text)
-    engine.runAndWait()
-    
+#Save the availability of the doctor, through admin panel.
 def save_availability(name,desc, email, available_dates, time_description):
     # Prepare data to be saved
     availability_entry = {
@@ -120,4 +95,33 @@ def save_availability(name,desc, email, available_dates, time_description):
 
     return True
 
+
+# Invokes the AI agent to get a response based on the provided input
+def get_agent_response(input:str)-> str:
+    return agent_executor.invoke({"input": input})
+
+#Starts the chat with the agent.
+def chat():
+    should_close
+    user_input = request.json.get("message")
+    if not user_input:
+        return jsonify({"error": "Missing user message"}), 400
+
+    if should_close:
+        return jsonify({"response": "Goodbye!", "end": True})
+
+    try:
+        response = get_agent_response(user_input)
+        return jsonify({"response": response["output"], "end": should_close})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+#Converts text to speech
+def text_to_speech_elevenlabs():
+    text= request.json.get("text")
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
     

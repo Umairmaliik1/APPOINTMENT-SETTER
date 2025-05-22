@@ -2,20 +2,21 @@ from langchain.tools import tool
 from datetime import datetime
 import json,os
 import os
+from google.cloud import pubsub_v1
+from google.cloud import pubsub_v1
 relative_path = r"pub_sub\cred.json"
 absolute_path = os.path.abspath(relative_path)
 credentials_path = absolute_path
 print(credentials_path)
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
-from google.cloud import pubsub_v1
-from google.cloud import pubsub_v1
 
+#Variables for closing the chat tool.
 global should_close
 should_close = False
 
 # Define tools
 @tool
-def publish_data(name: str, email: str, doc_category: str, datetime: str) -> str:
+def publish_data(name: str, email: str, doc_category: str, datetime: str) -> str: #This tool publishes the data on cloud based channel.
     """This tool is used to publish data to a Google Pub/Sub topic."""
     project_id = "gen-lang-client-0194953633"
     topic_id = "appointment-setter"
@@ -36,7 +37,10 @@ def publish_data(name: str, email: str, doc_category: str, datetime: str) -> str
 
     future = publisher.publish(topic_path, data, **attributes)
     return f"Data Published. Message ID: {future.result(timeout=10)}"
+
+#Path for doctor details file.
 availability_file_path= "admin_availability.json"
+
 @tool
 def fetch_doc_details(doctor_name: str) -> str:
     """
@@ -58,6 +62,7 @@ def fetch_doc_details(doctor_name: str) -> str:
         return "Doctor data file is not valid JSON."
     except Exception as e:
         return f"An error occurred: {str(e)}"
+
 
 @tool
 def extract_unique_doctor_names()->list:
@@ -92,6 +97,7 @@ def extract_unique_doctor_names()->list:
     except Exception as e:
         return f"Error: {str(e)}"
 
+
 @tool
 def collect_user_info(input: str) -> str:
     """
@@ -102,6 +108,7 @@ def collect_user_info(input: str) -> str:
     that you are unable to understand what i said.
     """
     return input
+
 
 @tool
 def save_info(info: str) -> str:
@@ -142,6 +149,8 @@ def save_info(info: str) -> str:
     except Exception as e:
         return f"Error saving information: {str(e)}"
 
+
+
 @tool
 def close_chat() -> str:
     """
@@ -150,6 +159,8 @@ def close_chat() -> str:
     global should_close
     should_close = True
     return "Endin the call."
+
+
 
 @tool
 def current_date_time() -> str:
