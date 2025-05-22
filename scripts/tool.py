@@ -2,9 +2,8 @@ from langchain.tools import tool
 from datetime import datetime
 import json,os
 import os
-base_dir = os.path.dirname(os.path.abspath(__file__))
-credentials_path = os.path.join(base_dir, "..", "..", "cred.json")
-credentials_path = os.path.abspath(credentials_path)
+relative_path=r"pub_sub\cred.json"
+credentials_path = os.path.abspath(relative_path)
 print(credentials_path)
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 from google.cloud import pubsub_v1
