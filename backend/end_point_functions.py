@@ -8,9 +8,6 @@ import os,json
 import pandas as pd
 import uuid
 from livekit.api import LiveKitAPI,ListRoomsRequest
-from livekit import api
-# Initialize client here or use a global one if appropriate for Flask context
-client = ElevenLabs(api_key=os.getenv("elevenlabs_Api_key"))
 async def generate_room_name():
     name="room-"+str(uuid.uuid4())[:8]
     rooms=await get_rooms()
