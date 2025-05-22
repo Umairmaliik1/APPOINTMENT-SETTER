@@ -1,7 +1,9 @@
 import os
 from dotenv import load_dotenv
 from livekit import agents
-credentials_path = "C:/Users/HP/Desktop/APPOINTMENT-SETTER/pub_sub/cred.json"
+relative_path = r"pub_sub\cred.json"
+absolute_path = os.path.abspath(relative_path)
+credentials_path = absolute_path
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 from livekit.agents import AgentSession, Agent, RoomInputOptions,function_tool
 from livekit.plugins import (

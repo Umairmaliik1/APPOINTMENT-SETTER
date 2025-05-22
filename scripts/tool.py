@@ -2,7 +2,9 @@ from langchain.tools import tool
 from datetime import datetime
 import json,os
 import os
-credentials_path = "C:/Users/HP/Desktop/APPOINTMENT-SETTER/pub_sub/cred.json"
+relative_path = r"pub_sub\cred.json"
+absolute_path = os.path.abspath(relative_path)
+credentials_path = absolute_path
 print(credentials_path)
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 from google.cloud import pubsub_v1
