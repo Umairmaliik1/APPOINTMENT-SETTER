@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from tool import *
 
 load_dotenv()
-tools = [current_date_time,fetch_doc_details,extract_unique_doctor_names,collect_user_info, save_info,close_chat,publish_data]
+tools = [current_date_time,fetch_doc_details,extract_unique_doctor_names,collect_user_info, save_info,close_chat,publish_data,reschedule_appointment]
 
     # Load base prompt
 base_prompt = hub.pull("hwchase17/structured-chat-agent")
@@ -87,6 +87,23 @@ mandatory:
 }}
 
 Save the appointment details using the save_info tool.
+
+--if the user insted wants to reschedule the appontment already booked:
+call reschedule_appointment tool to reschedule the appointment, for this you have to pass the email and datetime in correct formate to check formate call call current_date_time toll.
+if user provides the email or time then ask for the missing information.
+
+Ensure the selected time falls within the doctor's availability window before rescheduling the appointment.
+After that call publish_data tool to publish the data, for publish data you must give input like the following structure it is 
+mandatory:
+{{
+  "name": " ",
+  "email": " ",
+  "doc_category": " ",
+  "datetime": " "
+}}
+
+Save the updated appointment by calling the reschedule_appointment tool. No need to call save_info again.
+
 
 --Important Rules:
 MOST IMPORTANTLY, If user enters preffered date and time like next friday in evening then you have to convert it into correct date 

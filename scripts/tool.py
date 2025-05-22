@@ -2,7 +2,9 @@ from langchain.tools import tool
 from datetime import datetime
 import json,os
 import os
-credentials_path = "C:/Users/HP/Desktop/APPOINTMENT-SETTER/pub_sub/cred.json"
+base_dir = os.path.dirname(os.path.abspath(__file__))
+credentials_path = os.path.join(base_dir, "..", "..", "cred.json")
+credentials_path = os.path.abspath(credentials_path)
 print(credentials_path)
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 from google.cloud import pubsub_v1
@@ -15,8 +17,8 @@ should_close = False
 @tool
 def publish_data(name: str, email: str, doc_category: str, datetime: str) -> str:
     """This tool is used to publish data to a Google Pub/Sub topic."""
-    project_id = "gen-lang-client-0194953633"
-    topic_id = "appointment-setter"
+    project_id = "appointment-setter-by-me"
+    topic_id = "appointment_setter"
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(project_id, topic_id)
 
@@ -35,6 +37,7 @@ def publish_data(name: str, email: str, doc_category: str, datetime: str) -> str
     future = publisher.publish(topic_path, data, **attributes)
     return f"Data Published. Message ID: {future.result(timeout=10)}"
 availability_file_path= "admin_availability.json"
+
 @tool
 def fetch_doc_details(doctor_name: str) -> str:
     """
@@ -155,3 +158,43 @@ def current_date_time() -> str:
     Returns the current date and time.
     """
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+@tool
+def reschedule_appointment(info: str) -> str:
+    """
+    Reschedule existing appointments. Input must be a JSON string with 'email' and 'new_datetime'.
+    """
+    try:
+        payload = json.loads(info)
+        email = payload.get("email")
+        new_datetime = payload.get("new_datetime")
+
+        if not email or not new_datetime:
+            return "Error: Missing 'email' or 'new_datetime' in input."
+
+        if not os.path.exists('user_info.json'):
+            return "No appointment records found."
+
+        with open('user_info.json', 'r') as f:
+            data = json.load(f)
+
+        updated = False
+        for entry in data:
+            if entry.get('email') == email:
+                entry['date_time_appointment'] = new_datetime
+                updated = True
+                break
+
+        if not updated:
+            return f"No appointment found for email: {email}"
+
+        with open('user_info.json', 'w') as f:
+            json.dump(data, f, indent=4)
+
+        return f"Appointment rescheduled successfully to {new_datetime} for {email}"
+
+    except json.JSONDecodeError:
+        return "Error: Invalid JSON format"
+    except Exception as e:
+        return f"Error updating information: {str(e)}"
+
