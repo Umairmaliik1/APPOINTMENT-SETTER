@@ -1,4 +1,5 @@
-import os
+import os,json
+from typing import Union, Dict, Any
 from dotenv import load_dotenv
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions,function_tool
@@ -9,46 +10,56 @@ from livekit.plugins import (
     silero,
     google
 )
+from google.cloud import pubsub_v1
+from generate_prompt import generate_system_prompt
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
-from prompt import global_prompt,temporary_overide
-relative_path = r"pub_sub\cred.json"
-absolute_path = os.path.abspath(relative_path)
-credentials_path = absolute_path
+credentials_path = "cred.json"
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 
+custom_prompt=generate_system_prompt("I want a doctor's appointment assistant.")
 load_dotenv()
+# @function_tool
+# async def create_prompt(user_request: str)-> str:
+#     """This tool only updates the prompt."""
+#     prompt=generate_prompt(user_request)
+#     global custom_prompt
+#     custom_prompt=prompt
+#     return "Prompt updated."
 
 @function_tool
-async def publish_data(name: str, doc_category: str, datetime: str, email: str) -> str:
-    """Publishes data to a Pub/Sub topic."""
-    from google.cloud import pubsub_v1
+async def publish_data_fn(data: Union[str, Dict[str, Any]]) -> str:
+    """Publishes appointment data to Pub/Sub."""
+    # Parse JSON string if needed
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError as e:
+            return f"❌ Invalid JSON: {str(e)}"
+
+    if not data:
+        return "❌ No data provided to publish."
 
     project_id = "gen-lang-client-0194953633"
     topic_id = "appointment-setter"
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(project_id, topic_id)
 
-    data = f"{name} wants to meet for {doc_category} on {datetime}".encode("utf-8")
-    attributes = {
-        "name": name,
-        "doc_category": doc_category,
-        "datetime": datetime,
-        "email": email
-    }
+    description = "; ".join(f"{k}: {v}" for k, v in data.items() if v is not None)
+    attributes = {str(k): str(v) for k, v in data.items() if v is not None}
 
     try:
-        future = publisher.publish(topic_path, data, **attributes)
+        future = publisher.publish(topic_path, description.encode("utf-8"), **attributes)
         message_id = future.result(timeout=10)
-        print(f"✅ Pub/Sub: Published message ID: {message_id}")
-        return f"Data published. Message ID: {message_id}"
+        return f"✅ Data published. Message ID: {message_id}"
     except Exception as e:
-        print(f"❌ Pub/Sub publish failed: {e}")
-        return f"Failed to publish data: {str(e)}"
+        return f"❌ Failed to publish data: {str(e)}"
+
 
 
 class Assistant(Agent): #Instance of the agent.
     def __init__(self) -> None:
-        super().__init__(tools=[publish_data],instructions=global_prompt)
+        
+        super().__init__(tools=[publish_data_fn],instructions=custom_prompt)
 
 
 async def entrypoint(ctx: agents.JobContext): #Enterypoint function for our persistant AI assistant.
@@ -74,10 +85,9 @@ async def entrypoint(ctx: agents.JobContext): #Enterypoint function for our pers
 
     await ctx.connect()
 
-    await session.generate_reply(
-        instructions=temporary_overide
-    )
-
+    await session.generate_reply()
+    
+    
 
 if __name__ == "__main__":
     agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))

@@ -4,9 +4,9 @@ import json,os
 import os
 from google.cloud import pubsub_v1
 from google.cloud import pubsub_v1
-relative_path = r"pub_sub\cred.json"
-absolute_path = os.path.abspath(relative_path)
-credentials_path = absolute_path
+from generate_prompt import *
+# abs_path = os.path.abspath("pub_sub/cred.json")
+credentials_path = "C:\\Users\\HP\\Desktop\\APPOINTMENT-SETTER\\backend\\cred.json"
 print(credentials_path)
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 
@@ -15,28 +15,46 @@ global should_close
 should_close = False
 
 # Define tools
-@tool
-def publish_data(name: str, email: str, doc_category: str, datetime: str) -> str: #This tool publishes the data on cloud based channel.
-    """This tool is used to publish data to a Google Pub/Sub topic."""
+
+import json
+from typing import Union, Dict, Any
+from langchain.tools import Tool
+from google.cloud import pubsub_v1
+
+def publish_data_fn(data: Union[str, Dict[str, Any]]) -> str:
+    """Publishes appointment data to Pub/Sub."""
+    # Parse JSON string if needed
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError as e:
+            return f"❌ Invalid JSON: {str(e)}"
+
+    if not data:
+        return "❌ No data provided to publish."
+
     project_id = "gen-lang-client-0194953633"
     topic_id = "appointment-setter"
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(project_id, topic_id)
 
-    # Message payload (can be just a summary or ID)
-    data_str = f"{name} is booking an appointment for {doc_category} on {datetime}"
-    data = data_str.encode("utf-8")
+    description = "; ".join(f"{k}: {v}" for k, v in data.items() if v is not None)
+    attributes = {str(k): str(v) for k, v in data.items() if v is not None}
 
-    # Message attributes
-    attributes = {
-        "name": name,
-        "email": email,
-        "doc_category": doc_category,
-        "datetime": datetime,
-    }
+    try:
+        future = publisher.publish(topic_path, description.encode("utf-8"), **attributes)
+        message_id = future.result(timeout=10)
+        return f"✅ Data published. Message ID: {message_id}"
+    except Exception as e:
+        return f"❌ Failed to publish data: {str(e)}"
 
-    future = publisher.publish(topic_path, data, **attributes)
-    return f"Data Published. Message ID: {future.result(timeout=10)}"
+publish_data = Tool(
+    name="publish_data",
+    func=publish_data_fn,
+    description="Publishes appointment details. Input should be a dict or JSON string with fields like name, email, date_time, etc."
+)
+
+
 
 #Path for doctor details file.
 availability_file_path= "admin_availability.json"

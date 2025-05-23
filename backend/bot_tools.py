@@ -3,9 +3,9 @@ from google.cloud import pubsub_v1
 from langchain.tools import tool
 
 
-base_dir = os.path.dirname(__file__)  # directory of this script
-credentials_path = os.path.join(base_dir, "cred.json")
-print(credentials_path)
+abs_path=os.path.abspath("pub_sub\cred.json")
+credentials_path = abs_path
+
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 
 

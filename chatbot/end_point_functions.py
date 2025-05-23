@@ -1,7 +1,7 @@
 from flask import request,jsonify 
 import json,os
-from scripts.AiModel import agent_executor
-from scripts.tool import should_close
+from AiModel import agent_executor
+from tool import should_close
 import pyttsx3
 import os,json
 import pandas as pd

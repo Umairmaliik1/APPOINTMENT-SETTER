@@ -67,7 +67,12 @@
         "name": "Akhtar abbas",
         "doctor_name": "Ali",
         "date_time_appointment": "2025-05-25 16:00",
-        "email": "ak@gmail.com"
+        "email": "ak@gmail.com",
+        "history":[
+            {
+                
+            }
+        ]
     },
     {
         "name": "Umair",

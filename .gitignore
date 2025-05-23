@@ -2,4 +2,4 @@ venv/
 .env
 tts.py
 .venv/
-pub_sub/cred.json
+*/cred.json

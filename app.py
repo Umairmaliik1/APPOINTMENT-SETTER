@@ -1,7 +1,7 @@
 from flask import Flask,Response
 from dotenv import load_dotenv
 from flask_cors import CORS
-from backend.end_point_functions import chat, text_to_speech_elevenlabs, save_availability,save_through_file,generate_room_name,get_rooms
+from chatbot.end_point_functions import chat, text_to_speech_elevenlabs, save_availability,save_through_file,generate_room_name,get_rooms
 from flask import request, jsonify
 import os
 from flask import Flask,request

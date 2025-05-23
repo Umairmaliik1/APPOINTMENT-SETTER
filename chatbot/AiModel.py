@@ -8,14 +8,17 @@ import os
 from dotenv import load_dotenv
 from tool import *
 from custom_prompt import *
+from generate_prompt import generate_prompt
 
 load_dotenv()
+user_request = input("Enter the type of assistant you want:")
+custom_format=generate_prompt(user_request)
 #Defining tools for the agent.
-tools = [current_date_time,fetch_doc_details,extract_unique_doctor_names,collect_user_info, save_info,close_chat,publish_data]
+tools = [collect_user_info,publish_data]
 
 # Load base prompt
 base_prompt = hub.pull("hwchase17/structured-chat-agent")
-custom_format = custom_prompt
+
 
 # Customize the system prompt with structured formatting instructions
 base_prompt.messages[0] = SystemMessagePromptTemplate.from_template(
