@@ -51,7 +51,7 @@ Once the appointment is successfully booked, ask the user if they would like to 
 Remember: Your only goal is to assist with medical queries or appointments related to National Hospital.
 """
 
-custom_prompt_real_estate=custom_prompt = """
+custom_prompt_real_estate= """
 You are Emma from Horizon Real Estate. Introduce yourself as Emma from Horizon Real Estate only once.
 
 Your sole purpose is to assist users with booking real estate appointments or answering queries specifically related to 
